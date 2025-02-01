@@ -9,6 +9,7 @@ import { positionLocal, positionPrevious } from './Position.js';
 import { tangentLocal } from './Tangent.js';
 import { uniform } from '../core/UniformNode.js';
 import { buffer } from './BufferNode.js';
+import { getDataFromObject } from '../core/NodeUtils.js';
 
 /** @module SkinningNode **/
 
@@ -107,14 +108,14 @@ class SkinningNode extends Node {
 		this.bindMatrixInverseNode = bindMatrixInverseNode;
 
 		/**
-		 * The bind martices as a uniform buffer node.
+		 * The bind matrices as a uniform buffer node.
 		 *
 		 * @type {Node}
 		 */
 		this.boneMatricesNode = boneMatricesNode;
 
 		/**
-		 * The previous bind martices as a uniform buffer node.
+		 * The previous bind matrices as a uniform buffer node.
 		 * Required for computing motion vectors.
 		 *
 		 * @type {Node?}
@@ -125,7 +126,7 @@ class SkinningNode extends Node {
 	}
 
 	/**
-	 * Transfroms the given vertex position via skinning.
+	 * Transforms the given vertex position via skinning.
 	 *
 	 * @param {Node} [boneMatrices=this.boneMatricesNode] - The bone matrices
 	 * @param {Node<vec3>} [position=positionLocal] - The vertex position in local space.
@@ -156,7 +157,7 @@ class SkinningNode extends Node {
 	}
 
 	/**
-	 * Transfroms the given vertex normal via skinning.
+	 * Transforms the given vertex normal via skinning.
 	 *
 	 * @param {Node} [boneMatrices=this.boneMatricesNode] - The bone matrices
 	 * @param {Node<vec3>} [normal=normalLocal] - The vertex normal in local space.
@@ -187,7 +188,7 @@ class SkinningNode extends Node {
 	}
 
 	/**
-	 * Transfroms the given vertex normal via skinning.
+	 * Transforms the given vertex normal via skinning.
 	 *
 	 * @param {NodeBuilder} builder - The current node builder.
 	 * @return {Node<vec3>} The skinned position from the previous frame.
@@ -218,7 +219,7 @@ class SkinningNode extends Node {
 
 		const mrt = builder.renderer.getMRT();
 
-		return mrt && mrt.has( 'velocity' );
+		return ( mrt && mrt.has( 'velocity' ) ) || getDataFromObject( builder.object ).useVelocity === true;
 
 	}
 

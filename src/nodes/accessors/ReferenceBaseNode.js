@@ -26,7 +26,7 @@ class ReferenceElementNode extends ArrayElementNode {
 	/**
 	 * Constructs a new reference element node.
 	 *
-	 * @param {Node?} referenceNode - The reference node.
+	 * @param {ReferenceBaseNode?} referenceNode - The reference node.
 	 * @param {Node} indexNode - The index node that defines the element access.
 	 */
 	constructor( referenceNode, indexNode ) {
@@ -37,7 +37,7 @@ class ReferenceElementNode extends ArrayElementNode {
 		 * Similar to {@link module:ReferenceBaseNode~ReferenceBaseNode#reference}, an additional
 		 * property references to the current node.
 		 *
-		 * @type {Node?}
+		 * @type {ReferenceBaseNode?}
 		 * @default null
 		 */
 		this.referenceNode = referenceNode;
@@ -57,7 +57,6 @@ class ReferenceElementNode extends ArrayElementNode {
 	 * This method is overwritten since the node type is inferred from
 	 * the uniform type of the reference node.
 	 *
-	 * @param {NodeBuilder} builder - The current node builder.
 	 * @return {String} The node type.
 	 */
 	getNodeType() {
@@ -79,7 +78,7 @@ class ReferenceElementNode extends ArrayElementNode {
 }
 
 /**
- * Base class for nodes which establishe a reference to a property of another object.
+ * Base class for nodes which establishes a reference to a property of another object.
  * In this way, the value of the node is automatically linked to the value of
  * referenced object. Reference nodes internally represent the linked value
  * as a uniform.
@@ -286,7 +285,6 @@ class ReferenceBaseNode extends Node {
 	/**
 	 * The output of the reference node is the internal uniform node.
 	 *
-	 * @param {NodeBuilder} builder - The current node builder.
 	 * @return {UniformNode} The output node.
 	 */
 	setup() {

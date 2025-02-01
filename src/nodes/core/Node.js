@@ -417,6 +417,19 @@ class Node extends EventDispatcher {
 	}
 
 	/**
+	 * Returns the node member type for the given name.
+	 *
+	 * @param {NodeBuilder} builder - The current node builder.
+	 * @param {String} name - The name of the member.
+	 * @return {String} The type of the node.
+	 */
+	getMemberType( /*uilder, name*/ ) {
+
+		return 'void';
+
+	}
+
+	/**
 	 * Returns the node's type.
 	 *
 	 * @param {NodeBuilder} builder - The current node builder.
@@ -474,8 +487,9 @@ class Node extends EventDispatcher {
 
 		}
 
-		// return a outputNode if exists
-		return null;
+		// return a outputNode if exists or null
+
+		return nodeProperties.outputNode || null;
 
 	}
 
@@ -609,17 +623,19 @@ class Node extends EventDispatcher {
 
 			if ( properties.initialized !== true ) {
 
-				const stackNodesBeforeSetup = builder.stack.nodes.length;
+				//const stackNodesBeforeSetup = builder.stack.nodes.length;
 
 				properties.initialized = true;
-				properties.outputNode = this.setup( builder );
 
-				if ( properties.outputNode !== null && builder.stack.nodes.length !== stackNodesBeforeSetup ) {
+				const outputNode = this.setup( builder ); // return a node or null
+				const isNodeOutput = outputNode && outputNode.isNode === true;
+
+				/*if ( isNodeOutput && builder.stack.nodes.length !== stackNodesBeforeSetup ) {
 
 					// !! no outputNode !!
-					//properties.outputNode = builder.stack;
+					//outputNode = builder.stack;
 
-				}
+				}*/
 
 				for ( const childNode of Object.values( properties ) ) {
 
@@ -630,6 +646,14 @@ class Node extends EventDispatcher {
 					}
 
 				}
+
+				if ( isNodeOutput ) {
+
+					outputNode.build( builder );
+
+				}
+
+				properties.outputNode = outputNode;
 
 			}
 
@@ -680,7 +704,7 @@ class Node extends EventDispatcher {
 	/**
 	 * Returns the child nodes as a JSON object.
 	 *
-	 * @return {Object} The serialized child objects as JSON.
+	 * @return {Array<Object>} An iterable list of serialized child objects as JSON.
 	 */
 	getSerializeChildren() {
 

@@ -12,7 +12,7 @@ import { getTypeFromLength } from '../core/NodeUtils.js';
  * storage buffer for data. A typical workflow is to create instances of
  * this node with the convenience functions `attributeArray()` or `instancedArray()`,
  * setup up a compute shader that writes into the buffers and then convert
- * the storage buffers to attributes for rendering.
+ * the storage buffers to attribute nodes for rendering.
  *
  * ```js
  * const positionBuffer = instancedArray( particleCount, 'vec3' ); // the storage buffer node
@@ -49,20 +49,31 @@ class StorageBufferNode extends BufferNode {
 	/**
 	 * Constructs a new storage buffer node.
 	 *
-	 * @param {StorageBufferAttribute|StorageInstancedBufferAttribute} value - The buffer data.
-	 * @param {String?} [bufferType=null] - The buffer type (e.g. `'vec3'`).
+	 * @param {StorageBufferAttribute|StorageInstancedBufferAttribute|BufferAttribute} value - The buffer data.
+	 * @param {(String|Struct)?} [bufferType=null] - The buffer type (e.g. `'vec3'`).
 	 * @param {Number} [bufferCount=0] - The buffer count.
 	 */
 	constructor( value, bufferType = null, bufferCount = 0 ) {
 
-		if ( bufferType === null && ( value.isStorageBufferAttribute || value.isStorageInstancedBufferAttribute ) ) {
+		let nodeType, structTypeNode = null;
 
-			bufferType = getTypeFromLength( value.itemSize );
+		if ( bufferType && bufferType.isStruct ) {
+
+			nodeType = 'struct';
+			structTypeNode = bufferType.layout;
+
+		} else if ( bufferType === null && ( value.isStorageBufferAttribute || value.isStorageInstancedBufferAttribute ) ) {
+
+			nodeType = getTypeFromLength( value.itemSize );
 			bufferCount = value.count;
+
+		} else {
+
+			nodeType = bufferType;
 
 		}
 
-		super( value, bufferType, bufferCount );
+		super( value, nodeType, bufferCount );
 
 		/**
 		 * This flag can be used for type testing.
@@ -73,8 +84,17 @@ class StorageBufferNode extends BufferNode {
 		 */
 		this.isStorageBufferNode = true;
 
+
 		/**
-		 * The acces type of the texture node.
+		 * The buffer struct type.
+		 *
+		 * @type {structTypeNode?}
+		 * @default null
+		 */
+		this.structTypeNode = structTypeNode;
+
+		/**
+		 * The access type of the texture node.
 		 *
 		 * @type {String}
 		 * @default 'readWrite'
@@ -82,7 +102,7 @@ class StorageBufferNode extends BufferNode {
 		this.access = NodeAccess.READ_WRITE;
 
 		/**
-		 * Whether the node is atmoic or not.
+		 * Whether the node is atomic or not.
 		 *
 		 * @type {Boolean}
 		 * @default false
@@ -239,7 +259,7 @@ class StorageBufferNode extends BufferNode {
 	}
 
 	/**
-	 * Defines whether the node is amotic or not.
+	 * Defines whether the node is atomic or not.
 	 *
 	 * @param {Boolean} value - The atomic flag.
 	 * @return {StorageBufferNode} A reference to this node.
@@ -253,7 +273,7 @@ class StorageBufferNode extends BufferNode {
 	}
 
 	/**
-	 * Convenience method for making this node atmoic.
+	 * Convenience method for making this node atomic.
 	 *
 	 * @return {StorageBufferNode} A reference to this node.
 	 */
@@ -293,6 +313,12 @@ class StorageBufferNode extends BufferNode {
 	 */
 	getNodeType( builder ) {
 
+		if ( this.structTypeNode !== null ) {
+
+			return this.structTypeNode.getNodeType( builder );
+
+		}
+
 		if ( builder.isAvailable( 'storageBuffer' ) || builder.isAvailable( 'indirectStorageBuffer' ) ) {
 
 			return super.getNodeType( builder );
@@ -312,6 +338,8 @@ class StorageBufferNode extends BufferNode {
 	 * @return {String} The generated code snippet.
 	 */
 	generate( builder ) {
+
+		if ( this.structTypeNode !== null ) this.structTypeNode.build( builder );
 
 		if ( builder.isAvailable( 'storageBuffer' ) || builder.isAvailable( 'indirectStorageBuffer' ) ) {
 
@@ -337,13 +365,22 @@ export default StorageBufferNode;
  * TSL function for creating a storage buffer node.
  *
  * @function
- * @param {StorageBufferAttribute|StorageInstancedBufferAttribute} value - The buffer data.
- * @param {String?} [type=null] - The buffer type (e.g. `'vec3'`).
+ * @param {StorageBufferAttribute|StorageInstancedBufferAttribute|BufferAttribute} value - The buffer data.
+ * @param {(String|Struct)?} [type=null] - The buffer type (e.g. `'vec3'`).
  * @param {Number} [count=0] - The buffer count.
  * @returns {StorageBufferNode}
  */
 export const storage = ( value, type = null, count = 0 ) => nodeObject( new StorageBufferNode( value, type, count ) );
 
+/**
+ * @function
+ * @deprecated since r171. Use `storage().setPBO( true )` instead.
+ *
+ * @param {StorageBufferAttribute|StorageInstancedBufferAttribute|BufferAttribute} value - The buffer data.
+ * @param {String?} type - The buffer type (e.g. `'vec3'`).
+ * @param {Number} count - The buffer count.
+ * @returns {StorageBufferNode}
+ */
 export const storageObject = ( value, type, count ) => { // @deprecated, r171
 
 	console.warn( 'THREE.TSL: "storageObject()" is deprecated. Use "storage().setPBO( true )" instead.' );

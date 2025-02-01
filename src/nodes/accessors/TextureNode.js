@@ -248,7 +248,7 @@ class TextureNode extends UniformNode {
 	/**
 	 * Transforms the given uv node with the texture transformation matrix.
 	 *
-	 * @param {Node} uvNode - The uv node to transfrom.
+	 * @param {Node} uvNode - The uv node to transform.
 	 * @return {Node} The transformed uv node.
 	 */
 	getTransformedUV( uvNode ) {
@@ -268,7 +268,7 @@ class TextureNode extends UniformNode {
 	setUpdateMatrix( value ) {
 
 		this.updateMatrix = value;
-		this.updateType = value ? NodeUpdateType.FRAME : NodeUpdateType.NONE;
+		this.updateType = value ? NodeUpdateType.RENDER : NodeUpdateType.NONE;
 
 		return this;
 
@@ -313,6 +313,16 @@ class TextureNode extends UniformNode {
 
 		const properties = builder.getNodeProperties( this );
 		properties.referenceNode = this.referenceNode;
+
+		//
+
+		const texture = this.value;
+
+		if ( ! texture || texture.isTexture !== true ) {
+
+			throw new Error( 'THREE.TSL: `texture( value )` function expects a valid instance of THREE.Texture().' );
+
+		}
 
 		//
 
@@ -374,11 +384,11 @@ class TextureNode extends UniformNode {
 	 * @param {NodeBuilder} builder - The current node builder.
 	 * @param {String} textureProperty - The texture property.
 	 * @param {String} uvSnippet - The uv snippet.
-	 * @param {String} levelSnippet - The level snippet.
-	 * @param {String} biasSnippet - The bias snippet.
-	 * @param {String} depthSnippet - The depth snippet.
-	 * @param {String} compareSnippet - The compare snippet.
-	 * @param {String} gradSnippet - The grad snippet.
+	 * @param {String?} levelSnippet - The level snippet.
+	 * @param {String?} biasSnippet - The bias snippet.
+	 * @param {String?} depthSnippet - The depth snippet.
+	 * @param {String?} compareSnippet - The compare snippet.
+	 * @param {Array<String>?} gradSnippet - The grad snippet.
 	 * @return {String} The generated code snippet.
 	 */
 	generateSnippet( builder, textureProperty, uvSnippet, levelSnippet, biasSnippet, depthSnippet, compareSnippet, gradSnippet ) {
@@ -426,16 +436,9 @@ class TextureNode extends UniformNode {
 	 */
 	generate( builder, output ) {
 
-		const properties = builder.getNodeProperties( this );
-
 		const texture = this.value;
 
-		if ( ! texture || texture.isTexture !== true ) {
-
-			throw new Error( 'TextureNode: Need a three.js texture.' );
-
-		}
-
+		const properties = builder.getNodeProperties( this );
 		const textureProperty = super.generate( builder, 'property' );
 
 		if ( output === 'sampler' ) {
@@ -518,6 +521,13 @@ class TextureNode extends UniformNode {
 
 	// @TODO: Move to TSL
 
+	/**
+	 * @function
+	 * @deprecated since r172. Use {@link TextureNode#sample} instead.
+	 *
+	 * @param {Node} uvNode - The uv node.
+	 * @return {TextureNode} A texture node representing the texture sample.
+	 */
 	uv( uvNode ) { // @deprecated, r172
 
 		console.warn( 'THREE.TextureNode: .uv() has been renamed. Use .sample() instead.' );
